@@ -53,14 +53,14 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-extern void UARTDMA_UartIrqHandler(UARTDMA_HandleTypeDef *huartdma);
-extern void UARTDMA_DmaIrqHandler(UARTDMA_HandleTypeDef *huartdma);
+
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern UARTDMA_HandleTypeDef huartdma;
+extern DMA_HandleTypeDef hdma_usart2_rx;
+extern UART_HandleTypeDef huart2;
 /* USER CODE BEGIN EV */
-
+extern UARTDMA_HandleTypeDef huartdma;
 /* USER CODE END EV */
 
 /******************************************************************************/

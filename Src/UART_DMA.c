@@ -29,8 +29,10 @@ void UARTDMA_UartIrqHandler(UARTDMA_HandleTypeDef *huartdma)
 
 void UARTDMA_DmaIrqHandler(UARTDMA_HandleTypeDef *huartdma)
 {
-	uint8_t* UartBufferPointer;
-	uint32_t Length, BytesToCopy;
+	uint8_t *UartBufferPointer, *DmaBufferPointer;
+	uint32_t Length;
+	uint16_t i, TempHead;
+
 	typedef struct
 	{
 		__IO uint32_t ISR;   // DMA interrupt status register
@@ -44,39 +46,75 @@ void UARTDMA_DmaIrqHandler(UARTDMA_HandleTypeDef *huartdma)
 	{
 		DmaRegisters->IFCR = DMA_FLAG_TCIF1_5 << huartdma->huart->hdmarx->StreamIndex;	// Clear Transfer Complete flag
 
-		Length = DMA_RX_BUFFER_SIZE - huartdma->huart->hdmarx->Instance->NDTR; // Get the Lengthgth of transfered data
+		Length = DMA_RX_BUFFER_SIZE - huartdma->huart->hdmarx->Instance->NDTR; // Get the Length of transfered data
 
-		BytesToCopy = UART_BUFFER_SIZE - huartdma->WritePointer; // Get number of bytes we can copy to the end of buffer
+		UartBufferPointer = huartdma->UART_Buffer;
+		DmaBufferPointer = 	huartdma->DMA_RX_Buffer;
 
-		if(BytesToCopy > Length) // Check how many copy
+		// Write received data for UART main buffer - circular buffer
+		for(i = 0; i < Length; i++)
 		{
-			BytesToCopy = Length;
+			TempHead = (huartdma->UartBufferHead + 1) % UART_BUFFER_SIZE;
+			if(TempHead == huartdma->UartBufferTail)
+			{
+				huartdma->UartBufferHead = huartdma->UartBufferTail;	// No room for new data
+			}
+			else
+			{
+				UartBufferPointer[TempHead] = DmaBufferPointer[i];
+				if(UartBufferPointer[TempHead] == '\n')
+				{
+					huartdma->UartBufferLines++;
+				}
+				huartdma->UartBufferHead = TempHead;
+			}
 		}
-
-		// Write received data for UART main buffer for manipulation later
-		UartBufferPointer = huartdma->DMA_RX_Buffer;
-		memcpy(huartdma->UART_Buffer + huartdma->WritePointer, UartBufferPointer, BytesToCopy); // Copy first part of message
-
-		// Remaining data
-		huartdma->WritePointer += BytesToCopy;
-		Length -= BytesToCopy;
-		UartBufferPointer += BytesToCopy;
-
-		// If still data to write for beginning of buffer - circular feature
-		if(Length)
-		{
-			memcpy(huartdma->UART_Buffer, UartBufferPointer, Length); // Don't care if we override Read pointer now
-			huartdma->WritePointer = Length;
-		}
-
-		// Prepare DMA for next transfer
-		// Important! DMA stream won't start if all flags are not cleared first
 
 		DmaRegisters->IFCR = 0x3FU << huartdma->huart->hdmarx->StreamIndex; 		// Clear all interrupts
 		huartdma->huart->hdmarx->Instance->M0AR = (uint32_t) huartdma->DMA_RX_Buffer; // Set memory address for DMA again
 		huartdma->huart->hdmarx->Instance->NDTR = DMA_RX_BUFFER_SIZE; // Set number of bytes to receive
 		huartdma->huart->hdmarx->Instance->CR |= DMA_SxCR_EN;            	// Start DMA transfer
 	}
+}
+
+int UARTDMA_GetCharFromBuffer(UARTDMA_HandleTypeDef *huartdma)
+{
+	if(huartdma->UartBufferHead == huartdma->UartBufferTail)
+	{
+		return -1; // error - no char to return
+	}
+	huartdma->UartBufferTail = (huartdma->UartBufferTail + 1) % UART_BUFFER_SIZE;
+
+	return huartdma->UART_Buffer[huartdma->UartBufferTail];
+}
+
+uint8_t UARTDMA_IsDataReady(UARTDMA_HandleTypeDef *huartdma)
+{
+	if(huartdma->UartBufferLines)
+		return 1;
+	else
+		return 0;
+}
+
+int UARTDMA_GetLineFromBuffer(UARTDMA_HandleTypeDef *huartdma, char *OutBuffer)
+{
+	char TempChar;
+	char* LinePointer = OutBuffer;
+	if(huartdma->UartBufferLines)
+	{
+		while((TempChar = UARTDMA_GetCharFromBuffer(huartdma)))
+		{
+			if(TempChar == '\n')
+			{
+				break;
+			}
+			*LinePointer = TempChar;
+			LinePointer++;
+		}
+		*LinePointer = 0; // end of cstring
+		huartdma->UartBufferLines--; // decrement line counter
+	}
+	return 0;
 }
 
 void UARTDMA_Init(UARTDMA_HandleTypeDef *huartdma, UART_HandleTypeDef *huart)
