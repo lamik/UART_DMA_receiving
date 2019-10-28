@@ -23,6 +23,7 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "UART_DMA.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,13 +53,12 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-extern void UARTDMA_UartIrqHandler (UART_HandleTypeDef *huart);
-extern void UARTDMA_DmaIrqHandler (DMA_HandleTypeDef *hdma);
+extern void UARTDMA_UartIrqHandler(UARTDMA_HandleTypeDef *huartdma);
+extern void UARTDMA_DmaIrqHandler(UARTDMA_HandleTypeDef *huartdma);
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern DMA_HandleTypeDef hdma_usart2_rx;
-extern UART_HandleTypeDef huart2;
+extern UARTDMA_HandleTypeDef huartdma;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -209,7 +209,7 @@ void DMA1_Stream5_IRQHandler(void)
   /* USER CODE END DMA1_Stream5_IRQn 0 */
 //  HAL_DMA_IRQHandler(&hdma_usart2_rx);
   /* USER CODE BEGIN DMA1_Stream5_IRQn 1 */
-	UARTDMA_DmaIrqHandler(huart2.hdmarx);
+	UARTDMA_DmaIrqHandler(&huartdma);
   /* USER CODE END DMA1_Stream5_IRQn 1 */
 }
 
@@ -223,7 +223,7 @@ void USART2_IRQHandler(void)
   /* USER CODE END USART2_IRQn 0 */
 //  HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
-	UARTDMA_UartIrqHandler(&huart2);
+	UARTDMA_UartIrqHandler(&huartdma);
   /* USER CODE END USART2_IRQn 1 */
 }
 

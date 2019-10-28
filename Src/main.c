@@ -44,11 +44,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define DMA_RX_BUFFER_SIZE          64
-uint8_t DMA_RX_Buffer[DMA_RX_BUFFER_SIZE];
-
-#define UART_BUFFER_SIZE            256
-uint8_t UART_Buffer[UART_BUFFER_SIZE];
+UARTDMA_HandleTypeDef huartdma;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -105,7 +101,7 @@ int main(void)
   MX_DMA_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  UARTDMA_Init(&huart2);
+  UARTDMA_Init(&huartdma, &huart2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
