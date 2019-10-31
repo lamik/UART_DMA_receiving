@@ -2,11 +2,11 @@
  * UART_DMA.c
  *
  *  Created on: 27.10.2019
- *     Author: Mateusz Salamon
- *		 www.msalamon.pl
+ *      Author: Mateusz Salamon
+ *		www.msalamon.pl
  *
- *      Website:
- *      GitHub:
+ *      Website: https://msalamon.pl/odbieranie-uart-po-dma-to-bulka-z-maslem-lekcja-z-kursu-stm32/
+ *      GitHub:  https://github.com/lamik/UART_DMA_receiving
  *      Contact: mateusz@msalamon.pl
  */
 
