@@ -44,7 +44,7 @@ void UARTDMA_DmaIrqHandler(UARTDMA_HandleTypeDef *huartdma)
 
 	if (__HAL_DMA_GET_IT_SOURCE(huartdma->huart->hdmarx, DMA_IT_TC) != RESET) // Check if interrupt source is Transfer Complete
 	{
-		DmaRegisters->IFCR = DMA_FLAG_TCIF1_5 << huartdma->huart->hdmarx->StreamIndex;	// Clear Transfer Complete flag
+		DmaRegisters->IFCR = DMA_FLAG_TCIF0_4 << huartdma->huart->hdmarx->StreamIndex;	// Clear Transfer Complete flag
 
 		Length = DMA_RX_BUFFER_SIZE - huartdma->huart->hdmarx->Instance->NDTR; // Get the Length of transfered data
 
